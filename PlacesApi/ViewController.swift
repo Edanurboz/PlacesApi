@@ -3,7 +3,7 @@ import GoogleMaps
 import GooglePlaces
 import CoreLocation
 
-class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDelegate {
+class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDelegate, GMSMapViewDelegate{
 
     @IBOutlet weak var mapView: GMSMapView!
     @IBOutlet weak var searchBar: UISearchBar!
@@ -14,15 +14,14 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Delegeleri ata
-        locationManager.delegate = self
-        searchBar.delegate = self
+            locationManager.delegate = self
+            searchBar.delegate = self
+            mapView.delegate = self // <-- EKLENDİ
 
-        // Konum yetkisi ve başlat
-        locationManager.requestWhenInUseAuthorization()
-        locationManager.startUpdatingLocation()
+            locationManager.requestWhenInUseAuthorization()
+            locationManager.startUpdatingLocation()
 
-        mapView.isMyLocationEnabled = true
+            mapView.isMyLocationEnabled = true
     }
 
     // Konum güncellendiğinde
@@ -87,6 +86,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                                 let marker = GMSMarker()
                                 marker.position = CLLocationCoordinate2D(latitude: loc["lat"]!, longitude: loc["lng"]!)
                                 marker.title = name
+                                marker.userData = place 
                                 marker.map = self.mapView
                             }
                         }
@@ -97,4 +97,29 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
             }
         }.resume()
     }
+    
+    func mapView(_ mapView: GMSMapView, didTap marker: GMSMarker) -> Bool {
+        if let placeData = marker.userData as? [String: Any],
+           let detailVC = storyboard?.instantiateViewController(withIdentifier: "PlaceDetailViewController") as? PlaceDetailViewController {
+
+            // 1. Yer adı
+            detailVC.placeName = placeData["name"] as? String
+
+            // 2. Yer konumu
+            if let geometry = placeData["geometry"] as? [String: Any],
+               let location = geometry["location"] as? [String: Double],
+               let lat = location["lat"],
+               let lng = location["lng"] {
+                detailVC.placeCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
+            }
+
+            // 3. Kullanıcının mevcut konumu
+            detailVC.userLocation = currentCoordinate
+
+            // Sayfayı göster
+            self.present(detailVC, animated: true, completion: nil)
+        }
+        return true
+    }
+
 }
