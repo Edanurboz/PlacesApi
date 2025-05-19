@@ -16,7 +16,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
 
             locationManager.delegate = self
             searchBar.delegate = self
-            mapView.delegate = self // <-- EKLENDİ
+            mapView.delegate = self 
 
             locationManager.requestWhenInUseAuthorization()
             locationManager.startUpdatingLocation()
@@ -24,7 +24,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
             mapView.isMyLocationEnabled = true
     }
 
-    // Konum güncellendiğinde
+   
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.first else { return }
         currentCoordinate = location.coordinate
@@ -34,7 +34,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                                               zoom: 15)
         mapView.animate(to: camera)
 
-        // Kullanıcıya marker
+        
         let marker = GMSMarker()
         marker.position = location.coordinate
         marker.title = "Ben"
@@ -43,17 +43,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         locationManager.stopUpdatingLocation()
     }
 
-    // Arama yapıldığında
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder() // Klavyeyi kapat
+        searchBar.resignFirstResponder() 
 
         guard let keyword = searchBar.text?.lowercased(), !keyword.isEmpty else { return }
         guard let coordinate = currentCoordinate else { return }
 
-        // Önce haritadaki eski markerları temizle
+        
         mapView.clear()
 
-        // Kendi konumunu yeniden ekle
+        
         let selfMarker = GMSMarker()
         selfMarker.position = coordinate
         selfMarker.title = "Ben"
@@ -62,9 +62,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         fetchNearbyPlaces(location: coordinate, keyword: keyword)
     }
 
-    // Google Places API isteği
+    
     func fetchNearbyPlaces(location: CLLocationCoordinate2D, keyword: String) {
-        let radius = 1000 // metre
+        let radius = 1000 
         let apiKey = "AIzaSyD-E5q6andp6BmSQq4h0syiDTVZGtovsQ4"
         let urlStr = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=\(location.latitude),\(location.longitude)&radius=\(radius)&keyword=\(keyword)&key=\(apiKey)"
 
@@ -102,10 +102,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         if let placeData = marker.userData as? [String: Any],
            let detailVC = storyboard?.instantiateViewController(withIdentifier: "PlaceDetailViewController") as? PlaceDetailViewController {
 
-            // 1. Yer adı
+            
             detailVC.placeName = placeData["name"] as? String
 
-            // 2. Yer konumu
+            
             if let geometry = placeData["geometry"] as? [String: Any],
                let location = geometry["location"] as? [String: Double],
                let lat = location["lat"],
@@ -113,10 +113,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                 detailVC.placeCoordinate = CLLocationCoordinate2D(latitude: lat, longitude: lng)
             }
 
-            // 3. Kullanıcının mevcut konumu
+            
             detailVC.userLocation = currentCoordinate
 
-            // Sayfayı göster
+            
             self.present(detailVC, animated: true, completion: nil)
         }
         return true
